@@ -1,14 +1,15 @@
 package dev.flanker.alg;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class UnsignedIntTest {
-    private static final int ITERATIONS = 32;
+    private static final int ITERATIONS = 8;
     private static final int LEN = 512;
 
     @Test
@@ -89,8 +90,6 @@ public class UnsignedIntTest {
     @Test
     public void powTest() {
         for (int i = 0; i < ITERATIONS; i++) {
-            System.out.println("Iteration: " + i);
-
             BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
             BigInteger be = new BigInteger(LEN, ThreadLocalRandom.current());
             BigInteger bn = new BigInteger(LEN, ThreadLocalRandom.current());
@@ -104,6 +103,60 @@ public class UnsignedIntTest {
 
             assertEquals(bi.toString(16), ui.toString());
         }
+    }
+
+    @Test
+    public void sqrTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+            BigInteger bn = new BigInteger(LEN, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+            UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
+
+            UnsignedInt ui = ux.sqr(un);
+            BigInteger bi = bx.modPow(BigInteger.TWO, bn);
+
+            assertEquals(bi.toString(16), ui.toString());
+        }
+    }
+
+    @Test
+    public void shiftLeftTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            int shift = ThreadLocalRandom.current().nextInt(128);
+
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+
+            UnsignedInt ui = ux.shiftLeft(shift);
+            BigInteger bi = bx.shiftLeft(shift);
+
+            assertEquals(bi.toString(16), ui.toString());
+        }
+    }
+
+    @Test
+    public void shiftRightTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            int shift = ThreadLocalRandom.current().nextInt(128);
+
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+
+            UnsignedInt ui = ux.shiftRight(shift);
+            BigInteger bi = bx.shiftRight(shift);
+
+            assertEquals(bi.toString(16), ui.toString());
+        }
+    }
+
+    @Test
+    @Ignore
+    public void randomTest() {
+        System.out.println(UnsignedInt.random(128));
     }
 
 }
