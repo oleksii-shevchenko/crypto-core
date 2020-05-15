@@ -124,7 +124,7 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
         for (int i = 0; i < blocks; i++) {
             digits[i] = random.nextInt();
         }
-        digits[blocks] = random.nextInt() & ((1 << (bits / BASE)) - 1);
+        digits[blocks] = random.nextInt() & ((1 << (bits % BASE)) - 1);
         return new UnsignedInt(digits);
     }
 

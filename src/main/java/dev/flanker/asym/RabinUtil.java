@@ -97,6 +97,10 @@ final class RabinUtil {
                 .add(PADDING.shiftLeft(Byte.SIZE * (byteLength - 2)));
     }
 
+    static UnsignedInt parityBit(UnsignedInt x) {
+        return x.getBit(0) == 0 ? UnsignedInt.ZERO : UnsignedInt.ONE;
+    }
+
     private static int byteLength(int bitLength) {
         int length = bitLength / Byte.SIZE;
         length = (bitLength % Byte.SIZE == 0) ? length : length + 1;
