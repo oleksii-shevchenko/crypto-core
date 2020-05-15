@@ -1,15 +1,14 @@
 package dev.flanker.alg;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class UnsignedIntTest {
-    private static final int ITERATIONS = 8;
+    private static final int ITERATIONS = 32;
     private static final int LEN = 512;
 
     @Test
@@ -36,22 +35,6 @@ public class UnsignedIntTest {
     }
 
     @Test
-    public void modTest() {
-        for (int i = 0; i < ITERATIONS; i++) {
-            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
-            BigInteger bn = new BigInteger(LEN / 2, ThreadLocalRandom.current());
-
-            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
-            UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
-
-            UnsignedInt ui = ux.mod(un);
-            BigInteger bi = bx.mod(bn);
-
-            assertEquals(bi.toString(16), ui.toString());
-        }
-    }
-
-    @Test
     public void addTest() {
         for (int i = 0; i < ITERATIONS; i++) {
             BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
@@ -62,14 +45,47 @@ public class UnsignedIntTest {
             UnsignedInt uy = UnsignedInt.valueOf(by.toString(16));
             UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
 
-            UnsignedInt ui = ux.add(uy, un);
+            UnsignedInt unsignedInt = ux.add(uy, un);
             BigInteger bi = bx.add(by).mod(bn);
 
-            assertEquals(bi.toString(16), ui.toString());
+            assertEquals(bi.toString(16), unsignedInt.toString());
         }
     }
 
-   @Test
+    @Test
+    public void subtractTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+            BigInteger by = new BigInteger(LEN / 4, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+            UnsignedInt uy = UnsignedInt.valueOf(by.toString(16));
+
+            UnsignedInt unsignedInt = ux.subtract(uy);
+            BigInteger bi = bx.subtract(by);
+
+            assertEquals(bi.toString(16), unsignedInt.toString());
+        }
+    }
+
+
+    @Test
+    public void modTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+            BigInteger bn = new BigInteger(LEN / 2, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+            UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
+
+            UnsignedInt unsignedInt = ux.mod(un);
+            BigInteger bi = bx.mod(bn);
+
+            assertEquals(bi.toString(16), unsignedInt.toString());
+        }
+    }
+
+    @Test
     public void multiplicationTest() {
         for (int i = 0; i < ITERATIONS; i++) {
             BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
@@ -80,10 +96,10 @@ public class UnsignedIntTest {
             UnsignedInt uy = UnsignedInt.valueOf(by.toString(16));
             UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
 
-            UnsignedInt ui = ux.multiply(uy, un);
+            UnsignedInt unsignedInt = ux.multiply(uy, un);
             BigInteger bi = bx.multiply(by).mod(bn);
 
-            assertEquals(bi.toString(16), ui.toString());
+            assertEquals(bi.toString(16), unsignedInt.toString());
         }
     }
 
@@ -98,10 +114,10 @@ public class UnsignedIntTest {
             UnsignedInt ue = UnsignedInt.valueOf(be.toString(16));
             UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
 
-            UnsignedInt ui = ux.power(ue, un);
+            UnsignedInt unsignedInt = ux.pow(ue, un);
             BigInteger bi = bx.modPow(be, bn);
 
-            assertEquals(bi.toString(16), ui.toString());
+            assertEquals(bi.toString(16), unsignedInt.toString());
         }
     }
 
@@ -114,26 +130,26 @@ public class UnsignedIntTest {
             UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
             UnsignedInt un = UnsignedInt.valueOf(bn.toString(16));
 
-            UnsignedInt ui = ux.sqr(un);
+            UnsignedInt unsignedInt = ux.sqr(un);
             BigInteger bi = bx.modPow(BigInteger.TWO, bn);
 
-            assertEquals(bi.toString(16), ui.toString());
+            assertEquals(bi.toString(16), unsignedInt.toString());
         }
     }
 
     @Test
     public void shiftLeftTest() {
         for (int i = 0; i < ITERATIONS; i++) {
-            int shift = ThreadLocalRandom.current().nextInt(128);
+            int shift = ThreadLocalRandom.current().nextInt(64);
 
             BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
 
             UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
 
-            UnsignedInt ui = ux.shiftLeft(shift);
+            UnsignedInt unsignedInt = ux.shiftLeft(shift);
             BigInteger bi = bx.shiftLeft(shift);
 
-            assertEquals(bi.toString(16), ui.toString());
+            assertEquals(bi.toString(16), unsignedInt.toString());
         }
     }
 
@@ -146,17 +162,11 @@ public class UnsignedIntTest {
 
             UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
 
-            UnsignedInt ui = ux.shiftRight(shift);
+            UnsignedInt unsignedInt = ux.shiftRight(shift);
             BigInteger bi = bx.shiftRight(shift);
 
-            assertEquals(bi.toString(16), ui.toString());
+            assertEquals(bi.toString(16), unsignedInt.toString());
         }
-    }
-
-    @Test
-    @Ignore
-    public void randomTest() {
-        System.out.println(UnsignedInt.random(128));
     }
 
 }

@@ -1,7 +1,9 @@
 package dev.flanker.rand;
 
-public interface RandomGenerator {
+public interface Random {
     void generate(byte[] bytes);
+
+    int nextInt();
 
     default byte[] generate(int size) {
         byte[] bytes = new byte[size];
