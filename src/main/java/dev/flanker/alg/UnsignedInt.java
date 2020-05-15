@@ -2,11 +2,11 @@ package dev.flanker.alg;
 
 import dev.flanker.rand.Random;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static java.lang.Integer.lowestOneBit;
 import static java.lang.Integer.toUnsignedLong;
 import static java.util.Arrays.fill;
 
@@ -75,6 +75,8 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
 
 
     // <======================= Constructors ======================>
+
+
     public static UnsignedInt valueOf(int number) {
         if (CONSTANT_CACHE.containsKey((long) number)) {
             return CONSTANT_CACHE.get((long) number);
@@ -128,6 +130,8 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
 
 
     // <======================= Basic API =======================>
+
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -167,6 +171,8 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
 
 
     // <======================= Public API =======================>
+
+
     public UnsignedInt add(UnsignedInt that) {
         int[] result = new int[DOUBLE_ARRAY_LENGTH];
         add(this.digits, that.digits, result);
@@ -204,6 +210,31 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
         return new UnsignedInt(result);
     }
 
+    public UnsignedInt divide(UnsignedInt that) {
+        int[] result = new int[DOUBLE_ARRAY_LENGTH];
+        divide(this.digits,
+                that.digits,
+                result,
+                new int[DOUBLE_ARRAY_LENGTH],
+                new int[DOUBLE_ARRAY_LENGTH],
+                new int[DOUBLE_ARRAY_LENGTH]
+        );
+        return new UnsignedInt(result);
+    }
+
+    public UnsignedInt gcd(UnsignedInt that) {
+        int[] result = new int[DOUBLE_ARRAY_LENGTH];
+        gcd(this.digits,
+                that.digits,
+                result,
+                new int[DOUBLE_ARRAY_LENGTH],
+                new int[DOUBLE_ARRAY_LENGTH],
+                new int[DOUBLE_ARRAY_LENGTH],
+                new int[DOUBLE_ARRAY_LENGTH]
+        );
+        return new UnsignedInt(result);
+    }
+
     public UnsignedInt mod(UnsignedInt module) {
         int[] result = new int[DOUBLE_ARRAY_LENGTH];
         arrayCopy(this.digits, result);
@@ -212,7 +243,9 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
     }
 
     public UnsignedInt modInverse(UnsignedInt m) {
-        return null;
+        int[] result = new int[DOUBLE_ARRAY_LENGTH];
+        inverse(this.digits, m.digits, result);
+        return new UnsignedInt(result);
     }
 
     public UnsignedInt pow(UnsignedInt exponent, UnsignedInt module) {
@@ -268,7 +301,9 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
         return highestNonZeroBit(digits);
     }
 
+
     // <=================== Arithmetic Operators ===================>
+
 
     private static void add(final int[] x, final int[] y, final int[] result) {
         long carry = 0;
@@ -326,6 +361,38 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
         }
     }
 
+    private static void divide(int[] x, int[] y, int[] q, int[] r, int[] shiftBuffer, int[] subtractBuffer) {
+        if (isZeroArray(y)) {
+            throw new IllegalArgumentException();
+        }
+
+        if (isUniteArray(y)) {
+            arrayCopy(x, q);
+            fill(r, 0);
+            return;
+        }
+
+        fill(q, 0);
+        fill(r, 0);
+
+        int highestY = highestNonZeroBit(y);
+        arrayCopy(x, r);
+        while (compare(r, y, DOUBLE_ARRAY_LENGTH) >= 0) {
+            int shift = highestNonZeroBit(r) - highestY;
+            arrayCopy(y, shiftBuffer);
+            shiftBitLeft(shiftBuffer, shift);
+
+            if (compare(r, shiftBuffer, DOUBLE_ARRAY_LENGTH) < 0) {
+                shiftBitRight(shiftBuffer, 1);
+                shift--;
+            }
+
+            subtract(r, shiftBuffer, subtractBuffer);
+            arrayCopy(subtractBuffer, r);
+            setBit(q, 1, shift);
+        }
+    }
+
     private static void windowPow(int[] x, int[] e, int[] m, int[] r, int[] temp, int[] firstBuffer, int[] secondBuffer) {
         fill(temp, 0);
         fill(firstBuffer, 0);
@@ -374,23 +441,98 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
 
     // <==================== Modular Operators ====================>
 
+
     private static void inplaceMod(int[] x, int[] m, int[] subtractBuffer, int[] shiftBuffer) {
         fill(shiftBuffer, 0);
         fill(subtractBuffer, 0);
 
         int highestM = highestNonZeroBit(m);
-        while (compare(x, m, DOUBLE_ARRAY_LENGTH) > 0) {
+        while (compare(x, m, DOUBLE_ARRAY_LENGTH) >= 0) {
             arrayCopy(m, shiftBuffer);
             int bits = highestNonZeroBit(x) - highestM;
             shiftBitLeft(shiftBuffer, bits);
 
             if (compare(x, shiftBuffer, DOUBLE_ARRAY_LENGTH) < 0) {
-                arrayCopy(m, shiftBuffer);
-                shiftBitLeft(shiftBuffer, --bits);
+                shiftBitRight(shiftBuffer, 1);
             }
 
             subtract(x, shiftBuffer, subtractBuffer);
             arrayCopy(subtractBuffer, x);
+        }
+    }
+
+    private static void gcd(int[] x, int[] y, int[] result, int[] a, int[] b, int[] firstBuffer, int[] secondBuffer) {
+        arrayCopy(x, a);
+        arrayCopy(y, b);
+        while (true) {
+            inplaceMod(a, b, firstBuffer, secondBuffer);
+            if (isZeroArray(a))
+                break;
+            arrayCopy(a, firstBuffer);
+            arrayCopy(b, a);
+            arrayCopy(firstBuffer, b);
+        }
+        arrayCopy(b, result);
+    }
+
+    private static void inverse(int[] x, int[] n, int[] inv) {
+        if (isUniteArray(x)) {
+            uniteArray(inv);
+            return;
+        }
+
+        int[] firstBuffer = new int[DOUBLE_ARRAY_LENGTH];
+        int[] secondBuffer = new int[DOUBLE_ARRAY_LENGTH];
+
+        int[] c1 = new int[DOUBLE_ARRAY_LENGTH];
+        int[] c2 = new int[DOUBLE_ARRAY_LENGTH];
+
+        int[] a = new int[DOUBLE_ARRAY_LENGTH];
+        int[] b = new int[DOUBLE_ARRAY_LENGTH];
+
+        gcd(x, n, c1, a, b, firstBuffer, secondBuffer);
+
+        if (!isUniteArray(c1)) {
+            throw new IllegalArgumentException();
+        }
+
+        uniteArray(c1);
+
+        arrayCopy(n, a);
+        arrayCopy(x, b);
+
+        inplaceMod(b, a, firstBuffer, secondBuffer);
+
+        fill(firstBuffer, 0);
+        fill(secondBuffer, 0);
+
+        int[] q = new int[DOUBLE_ARRAY_LENGTH];
+        int[] r = new int[DOUBLE_ARRAY_LENGTH];
+
+        fill(inv, 0);
+
+        int i = 0;
+        while (true) {
+            i++;
+
+            divide(a, b, q, r, firstBuffer, secondBuffer);
+            arrayCopy(b, a);
+            arrayCopy(r, b);
+
+            multiply(c1, q, r, firstBuffer, secondBuffer);
+            add(c2, r, inv);
+            arrayCopy(c1, c2);
+            arrayCopy(inv, c1);
+
+            if (isUniteArray(b))
+                break;
+        }
+
+        // inplaceMod(inv, n, firstBuffer, secondBuffer);
+
+        if ((i % 2) == 1) {
+            arrayCopy(inv, a);
+            subtract(n, a, inv);
         }
     }
 
@@ -512,17 +654,23 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
 
     private static int highestNonZeroBit(int[] x) {
         int i, j;
-        for (i = DOUBLE_ARRAY_LENGTH - 1; i > -1; i--)
+        for (i = DOUBLE_ARRAY_LENGTH - 1; i > -1; i--) {
             if (x[i] != 0)
                 break;
-        for (j = BASE - 1; j > -1; j--)
+        }
+        if (i == -1) {
+            return 0;
+        }
+        for (j = BASE - 1; j > -1; j--) {
             if (((x[i] >>> j) & 1) != 0)
                 break;
+        }
         return (BASE * i + j);
     }
 
 
     // <===================== Util Operators =====================>
+
 
     private static void arrayCopy(int[] src, int[] dst) {
         System.arraycopy(src, 0, dst, 0, DOUBLE_ARRAY_LENGTH);
@@ -531,6 +679,27 @@ public class UnsignedInt implements Comparable<UnsignedInt> {
     private static void uniteArray(int[] x) {
         fill(x, 0);
         x[0] = 1;
+    }
+
+    private static boolean isZeroArray(int[] x) {
+        for (int i = 0; i < DOUBLE_ARRAY_LENGTH; i++) {
+            if (x[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isUniteArray(int[] x) {
+        if (x[0] != 1) {
+            return false;
+        }
+        for (int i = 1; i < DOUBLE_ARRAY_LENGTH; i++) {
+            if (x[i] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static int compare(int[] x, int[] y, int precision) {

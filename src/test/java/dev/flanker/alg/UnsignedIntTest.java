@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.Assert.*;
 
 public class UnsignedIntTest {
-    private static final int ITERATIONS = 32;
+    private static final int ITERATIONS = 64;
     private static final int LEN = 512;
 
     @Test
@@ -98,6 +98,54 @@ public class UnsignedIntTest {
 
             UnsignedInt unsignedInt = ux.multiply(uy, un);
             BigInteger bi = bx.multiply(by).mod(bn);
+
+            assertEquals(bi.toString(16), unsignedInt.toString());
+        }
+    }
+
+    @Test
+    public void divisionTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+            BigInteger by = new BigInteger(LEN / 4, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+            UnsignedInt uy = UnsignedInt.valueOf(by.toString(16));
+
+            UnsignedInt unsignedInt = ux.divide(uy);
+            BigInteger bi = bx.divide(by);
+
+            assertEquals(bi.toString(16), unsignedInt.toString());
+        }
+    }
+
+    @Test
+    public void gcdTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            BigInteger bx = new BigInteger(LEN, ThreadLocalRandom.current());
+            BigInteger by = new BigInteger(LEN / 4, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+            UnsignedInt uy = UnsignedInt.valueOf(by.toString(16));
+
+            UnsignedInt unsignedInt = ux.gcd(uy);
+            BigInteger bi = bx.gcd(by);
+
+            assertEquals(bi.toString(16), unsignedInt.toString());
+        }
+    }
+
+    @Test
+    public void inverseTest() {
+        for (int i = 0; i < ITERATIONS; i++) {
+            BigInteger bx = new BigInteger(LEN / 2, ThreadLocalRandom.current());
+            BigInteger by = BigInteger.probablePrime(LEN, ThreadLocalRandom.current());
+
+            UnsignedInt ux = UnsignedInt.valueOf(bx.toString(16));
+            UnsignedInt uy = UnsignedInt.valueOf(by.toString(16));
+
+            UnsignedInt unsignedInt = ux.modInverse(uy);
+            BigInteger bi = bx.modInverse(by);
 
             assertEquals(bi.toString(16), unsignedInt.toString());
         }
